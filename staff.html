@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>HotPot — Staff Orders</title>
+<meta name="robots" content="noindex, nofollow" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@700&family=JetBrains+Mono:wght@400;500;600;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{--ink:#160D0B;--ink-2:#26140F;--ember:#D11F2A;--ember-light:#ED4B52;--cream:#F4ECDD;--cream-dim:#E8DCC6;--clay-light:#C9A998;--line:rgba(244,236,221,.14);}
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--ink);color:var(--cream);font-family:'Work Sans',sans-serif;min-height:100vh;}
+  [hidden]{display:none !important;}
+  .wrap{max-width:780px;margin:0 auto;padding:40px 20px 90px;}
+  h1{font-family:'Fraunces',serif;font-weight:700;font-size:1.5rem;margin:0 0 4px;}
+  .brand-mark{color:var(--ember-light);font-style:italic;}
+  .sub{color:var(--clay-light);font-size:.85rem;margin-bottom:30px;}
+
+  .login-card{max-width:360px;margin:90px auto;background:var(--ink-2);border:1px solid var(--line);border-radius:10px;padding:30px;}
+  .login-card h2{font-family:'Work Sans',sans-serif;font-size:1.1rem;margin:0 0 18px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;color:var(--clay-light);margin-bottom:6px;}
+  .field input{width:100%;padding:10px 12px;border:1.5px solid var(--line);border-radius:6px;background:var(--ink);color:var(--cream);font-size:.9rem;}
+  .field input:focus{outline:none;border-color:var(--ember);}
+  .btn{width:100%;padding:11px;border:none;border-radius:6px;background:var(--ember);color:var(--cream);font-weight:600;font-size:.9rem;cursor:pointer;transition:background .2s;}
+  .btn:hover{background:var(--ember-light);}
+  .error-msg{color:var(--ember-light);font-size:.82rem;margin-top:10px;min-height:1em;}
+  .logout{font-size:.8rem;color:var(--clay-light);border:none;background:none;cursor:pointer;}
+  .logout:hover{color:var(--ember-light);}
+  .top-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
+
+  .filters{display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap;}
+  .filters button{padding:6px 14px;border-radius:999px;border:1.5px solid var(--line);background:var(--ink-2);color:var(--cream-dim);font-size:.78rem;cursor:pointer;}
+  .filters button.active{background:var(--ember);border-color:var(--ember);color:var(--cream);}
+
+  .order-card{background:var(--ink-2);border:1px solid var(--line);border-radius:10px;padding:18px 20px;margin-bottom:14px;}
+  .order-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;flex-wrap:wrap;gap:6px;}
+  .order-id{font-family:'JetBrains Mono',monospace;color:var(--ember-light);font-size:.85rem;}
+  .order-time{color:var(--clay-light);font-size:.78rem;}
+  .order-customer{font-size:.95rem;margin:0 0 4px;}
+  .order-meta{color:var(--clay-light);font-size:.82rem;margin:0 0 10px;}
+  .order-items{list-style:none;padding:0;margin:0 0 10px;font-size:.85rem;}
+  .order-items li{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dashed var(--line);}
+  .order-notes{font-size:.82rem;color:var(--clay-light);font-style:italic;margin:0 0 10px;}
+  .order-foot{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:12px;}
+  .order-subtotal{font-family:'JetBrains Mono',monospace;color:var(--cream);}
+  .status-badge{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;padding:4px 10px;border-radius:999px;}
+  .status-pending{background:rgba(209,31,42,.22);color:var(--ember-light);}
+  .status-preparing{background:rgba(237,75,82,.18);color:var(--ember-light);}
+  .status-ready{background:rgba(63,163,77,.2);color:#7CC986;}
+  .status-completed{background:rgba(244,236,221,.1);color:var(--clay-light);}
+  .status-cancelled{background:rgba(244,236,221,.06);color:var(--clay-light);text-decoration:line-through;}
+  .order-actions{display:flex;gap:8px;flex-wrap:wrap;}
+  .order-actions button{padding:6px 12px;border-radius:6px;border:1.5px solid var(--line);background:var(--ink);color:var(--cream-dim);font-size:.78rem;cursor:pointer;}
+  .order-actions button:hover{border-color:var(--ember);color:var(--ember-light);}
+  .empty-msg{text-align:center;color:var(--clay-light);font-style:italic;padding:60px 20px;}
+</style>
+</head>
+<body>
+
+<div class="wrap" id="loginWrap">
+  <div class="login-card">
+    <h2>Staff Sign In</h2>
+    <form id="loginForm">
+      <div class="field"><label for="email">Email</label><input type="email" id="email" required /></div>
+      <div class="field"><label for="password">Password</label><input type="password" id="password" required /></div>
+      <button class="btn" type="submit">Sign In</button>
+      <p class="error-msg" id="loginError"></p>
+    </form>
+  </div>
+</div>
+
+<div class="wrap" id="dashWrap" hidden>
+  <div class="top-row">
+    <div>
+      <h1>Hot<span class="brand-mark">Pot</span> — Orders</h1>
+      <p class="sub">Live order queue</p>
+    </div>
+    <button class="logout" id="logoutBtn">Sign out</button>
+  </div>
+  <div class="filters" id="filters">
+    <button data-status="all" class="active">All</button>
+    <button data-status="pending">Pending</button>
+    <button data-status="preparing">Preparing</button>
+    <button data-status="ready">Ready</button>
+    <button data-status="completed">Completed</button>
+  </div>
+  <div id="orderList"></div>
+  <p class="empty-msg" id="emptyMsg" hidden>No orders here yet.</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// Same project as index.html — paste the same values here.
+const SUPABASE_URL = 'https://wnxlsxgucwbozqrkzlro.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_z8D8XmvlEREhaqoW2Wjisg_ClMYFc7d';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const loginWrap=document.getElementById('loginWrap'), dashWrap=document.getElementById('dashWrap');
+const loginForm=document.getElementById('loginForm'), loginError=document.getElementById('loginError');
+const orderList=document.getElementById('orderList'), emptyMsg=document.getElementById('emptyMsg');
+const filters=document.getElementById('filters');
+
+let orders = [];
+let activeFilter = 'all';
+
+const STATUS_FLOW = { pending:'preparing', preparing:'ready', ready:'completed' };
+const STATUS_LABEL = { pending:'Pending', preparing:'Preparing', ready:'Ready', completed:'Completed', cancelled:'Cancelled' };
+
+function fmtTime(ts){
+  return new Date(ts).toLocaleString([], { month:'short', day:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+function renderOrders(){
+  const visible = activeFilter==='all' ? orders : orders.filter(o=>o.status===activeFilter);
+  emptyMsg.hidden = visible.length>0;
+  orderList.innerHTML = visible.map(o=>{
+    const next = STATUS_FLOW[o.status];
+    const itemsHtml = o.items.map(it=>
+      '<li><span>'+it.qty+' &times; '+it.name+'</span><span>₹'+(it.price*it.qty).toFixed(2)+'</span></li>'
+    ).join('');
+    return ''
+      + '<div class="order-card" data-id="'+o.id+'">'
+      + '<div class="order-top"><span class="order-id">#'+o.id.slice(0,8).toUpperCase()+'</span><span class="order-time">'+fmtTime(o.created_at)+'</span></div>'
+      + '<p class="order-customer"><strong>'+o.customer_name+'</strong> &middot; '+o.customer_phone+'</p>'
+      + '<p class="order-meta">'+(o.order_type==='dine_in' ? 'Dine-in &middot; Table '+(o.table_number||'—') : 'Pickup')+'</p>'
+      + '<ul class="order-items">'+itemsHtml+'</ul>'
+      + (o.notes ? '<p class="order-notes">Note: '+o.notes+'</p>' : '')
+      + '<div class="order-foot"><span class="order-subtotal">₹'+Number(o.subtotal).toFixed(2)+'</span><span class="status-badge status-'+o.status+'">'+STATUS_LABEL[o.status]+'</span></div>'
+      + '<div class="order-actions">'
+      +   (next ? '<button data-action="advance" data-id="'+o.id+'" data-next="'+next+'">Mark '+STATUS_LABEL[next]+'</button>' : '')
+      +   (o.status!=='completed' && o.status!=='cancelled' ? '<button data-action="cancel" data-id="'+o.id+'">Cancel</button>' : '')
+      + '</div>'
+      + '</div>';
+  }).join('');
+}
+
+async function loadOrders(){
+  const { data, error } = await supabaseClient.from('orders').select('*').order('created_at', { ascending:false });
+  if(!error){ orders = data; renderOrders(); }
+}
+
+async function updateStatus(id, status){
+  await supabaseClient.from('orders').update({ status }).eq('id', id);
+}
+
+orderList.addEventListener('click', (e)=>{
+  const btn = e.target.closest('button[data-action]');
+  if(!btn) return;
+  const id = btn.dataset.id;
+  if(btn.dataset.action==='advance') updateStatus(id, btn.dataset.next);
+  if(btn.dataset.action==='cancel') updateStatus(id, 'cancelled');
+});
+
+filters.addEventListener('click', (e)=>{
+  const btn = e.target.closest('button[data-status]');
+  if(!btn) return;
+  activeFilter = btn.dataset.status;
+  filters.querySelectorAll('button').forEach(b=>b.classList.toggle('active', b===btn));
+  renderOrders();
+});
+
+loginForm.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+  const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+  if(error){ loginError.textContent = error.message; return; }
+  showDashboard();
+});
+
+document.getElementById('logoutBtn').addEventListener('click', async ()=>{
+  await supabaseClient.auth.signOut();
+  location.reload();
+});
+
+function showDashboard(){
+  loginWrap.hidden = true; dashWrap.hidden = false;
+  loadOrders();
+  supabaseClient.channel('orders-changes')
+    .on('postgres_changes', { event:'*', schema:'public', table:'orders' }, ()=> loadOrders())
+    .subscribe();
+}
+
+(async function init(){
+  const { data } = await supabaseClient.auth.getSession();
+  if(data.session){ showDashboard(); }
+})();
+</script>
+</body>
+</html>
